@@ -1,36 +1,39 @@
-import Loading from "./components/template/Loading.component";
-import { useLoadingStore } from "./stores";
-import { useShallow } from "zustand/react/shallow";
+import { Loading } from "@/layouts";
+import { useAuthStore } from "@/stores/auth.store";
+import { Suspense, useEffect } from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import NotFoundPage from "./pages/NotFoundPage.page";
+import { AdminAuthRoutes, AdminRoutes, ClientAuthRoutes, ClientPublicRoutes, ClientRoutes } from "./routes";
 
-function App() {
-  const { loading, setLoading } = useLoadingStore(
-    useShallow((state) => ({
-      loading: state.loading,
-      setLoading: state.setLoading,
-    })),
-  );
+const App = () => {
+  const hydrate = useAuthStore((state) => state.hydrate);
 
-  const test = () => {
-    setLoading(!loading);
-    console.log("test");
-  };
+  // sync localStorage -> store when reload
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
 
   return (
-    <>
+    <BrowserRouter>
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          {/* Admin */}
+          {AdminAuthRoutes}
+          {AdminRoutes}
+
+          {/* Client */}
+          {ClientAuthRoutes}
+          {ClientPublicRoutes}
+          {ClientRoutes}
+
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Suspense>
+
+      {/* Global loading */}
       <Loading />
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="rounded-xl bg-white p-6 shadow-lg">
-          <h1 className="text-3xl font-bold text-blue-600">Tailwind OK 🚀</h1>
-
-          <p className="mt-2 text-red-600">Nếu thấy UI đẹp lên là Tailwind đã hoạt động</p>
-
-          <button className="mt-4 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600" onClick={() => test()}>
-            Test Button
-          </button>
-        </div>
-      </div>
-    </>
+    </BrowserRouter>
   );
-}
+};
 
 export default App;
