@@ -1,20 +1,15 @@
-// src/pages/AdminLogin.page.tsx
-
-import { FAKE_USERS } from "@/consts";
+import { HttpError } from "@/api/http.types";
+import { fetchAuthUserUseCase } from "@/features";
 import { ROUTER_URL } from "@/routes/router.const";
-import { useAuthStore } from "@/stores/auth.store";
 import { showError } from "@/utils";
-import { getCurrentUser } from "@/utils/localstorage.util";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { adminLoginSchema, type AdminLoginFormValues } from "./schema/adminLogin.schema";
+import { loginUseCase } from "./usecases";
 
 export default function AdminLoginPage() {
   const navigate = useNavigate();
-  const login = useAuthStore((state) => state.login);
-  const user = getCurrentUser();
 
   const {
     register,
@@ -24,28 +19,31 @@ export default function AdminLoginPage() {
     resolver: zodResolver(adminLoginSchema),
   });
 
-  useEffect(() => {
-    if (user) {
-      navigate(`${ROUTER_URL.ADMIN}/${ROUTER_URL.ADMIN_ROUTER.DASHBOARD}`, { replace: true });
-    }
-  }, [user, navigate]);
-
-  const onSubmit = async (data: AdminLoginFormValues) => {
-    const user = FAKE_USERS.find((user) => user.email === data.email);
-
+  const onLogin = async (data: AdminLoginFormValues) => {
     // TODO: only for demo, remove in production
-    if (!user) {
-      showError("User not found! Please check your email again!");
-      return;
+    // const user = FAKE_USERS.find((user) => user.email === data.email);
+    // console.log("Found user:", user);
+    // if (!user) {
+    //   showError("User not found! Please check your email again!");
+    //   return;
+    // }
+    try {
+      // 1. authenticate
+      await loginUseCase(data);
+
+      // 2. fetch profile + set store
+    //   await fetchAuthUserUseCase();
+
+      // 3. redirect
+    //   navigate(`${ROUTER_URL.ADMIN}/${ROUTER_URL.ADMIN_ROUTER.DASHBOARD}`, { replace: true });
+    } catch (err) {
+      if (err instanceof HttpError) {
+        showError(err.message);
+        return;
+      }
+
+      showError("Login failed. Please try again.");
     }
-
-    // TODO:
-    // 1. Call login API
-    // 2. Call api get user info
-    // 3. Redirect to /admin/dashboard
-
-    login(user);
-    navigate(`${ROUTER_URL.ADMIN}/${ROUTER_URL.ADMIN_ROUTER.DASHBOARD}`, { replace: true });
   };
 
   return (
@@ -55,7 +53,7 @@ export default function AdminLoginPage() {
         <h1 className="text-2xl font-semibold text-center mb-6">Admin Login</h1>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onLogin)} className="space-y-4">
           {/* Email */}
           <div>
             <label className="block text-sm font-medium mb-1">Email</label>

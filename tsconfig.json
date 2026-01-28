@@ -3,14 +3,18 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@stores": ["src/stores"],
-      "@stores/*": ["src/stores/*"],
-      "@components": ["src/components"],
-      "@components/*": ["src/components/*"],
       "@layouts": ["src/layouts"],
       "@layouts/*": ["src/layouts/*"],
+      "@components": ["src/components"],
+      "@components/*": ["src/components/*"],
+      "@stores": ["src/stores"],
+      "@stores/*": ["src/stores/*"],
       "@utils": ["src/utils"],
-      "@utils/*": ["src/utils/*"]
+      "@utils/*": ["src/utils/*"],
+      "@api": ["src/api"],
+      "@api/*": ["src/api/*"],
+      "@service": ["src/service"],
+      "@service/*": ["src/service/*"]
     }
   },
   "files": [],

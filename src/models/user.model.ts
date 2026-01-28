@@ -1,7 +1,9 @@
 import type { Role } from "./role.model";
 
-export type UserAccount = {
-  id: number;
+export type UserLoggedInfo = {
+  id: string;
+  email: string;
   role: Role;
-  email?: string;
+  phone: string;
+  name: string;
 };

@@ -12,13 +12,15 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "stores": "@/stores",
-    "components": "@/components",
     "layouts": "@/layouts",
-    "utils": "@/utils",
+    "components": "@/components",
     "ui": "@/components/ui",
     "lib": "@/lib",
-    "hooks": "@/hooks"
+    "hooks": "@/hooks",
+    "stores": "@/stores",
+    "api": "@/api",
+    "service": "@/service",
+    "utils": "@/utils"
   },
   "registries": {}
 }
