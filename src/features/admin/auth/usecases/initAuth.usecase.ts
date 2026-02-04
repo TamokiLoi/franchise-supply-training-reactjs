@@ -6,6 +6,7 @@ export const initAuthUseCase = async () => {
 
   try {
     await fetchAuthUserUseCase();
+    console.log(2)
   } catch {
     clearUser();
   } finally {

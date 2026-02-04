@@ -1,7 +1,8 @@
 import { HttpError } from "@/api/http.types";
 import { fetchAuthUserUseCase } from "@/features";
 import { ROUTER_URL } from "@/routes/router.const";
-import { showError } from "@/utils";
+import { useLoadingStore } from "@/stores";
+import { showError, showSuccess } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -10,39 +11,40 @@ import { loginUseCase } from "./usecases";
 
 export default function AdminLoginPage() {
   const navigate = useNavigate();
+  const setLoading = useLoadingStore((s) => s.setLoading);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<AdminLoginFormValues>({
+    defaultValues: {
+      email: "tamoki1110@gmail.com",
+      password: "12345678",
+    },
     resolver: zodResolver(adminLoginSchema),
   });
 
   const onLogin = async (data: AdminLoginFormValues) => {
-    // TODO: only for demo, remove in production
-    // const user = FAKE_USERS.find((user) => user.email === data.email);
-    // console.log("Found user:", user);
-    // if (!user) {
-    //   showError("User not found! Please check your email again!");
-    //   return;
-    // }
+    setLoading(true);
     try {
       // 1. authenticate
       await loginUseCase(data);
 
-      // 2. fetch profile + set store
-    //   await fetchAuthUserUseCase();
+      // 2. fetch auth user
+      await fetchAuthUserUseCase();
 
       // 3. redirect
-    //   navigate(`${ROUTER_URL.ADMIN}/${ROUTER_URL.ADMIN_ROUTER.DASHBOARD}`, { replace: true });
+      navigate(ROUTER_URL.ADMIN, { replace: true });
     } catch (err) {
       if (err instanceof HttpError) {
         showError(err.message);
         return;
       }
-
       showError("Login failed. Please try again.");
+    } finally {
+      showSuccess("Login successful!");
+      setLoading(false);
     }
   };
 

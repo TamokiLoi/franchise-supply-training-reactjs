@@ -5,7 +5,7 @@ import { ROUTER_URL } from "../router.const";
 
 const AdminGuard = () => {
   const { user, isInitialized } = useAuthStore();
-
+  console.log(3);
   if (!isInitialized) {
     return null;
   }

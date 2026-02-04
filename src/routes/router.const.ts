@@ -1,5 +1,6 @@
 export const ROUTER_URL = {
   HOME: "/",
+
   ABOUT: `/about`,
   CONTACT: `/contact`,
   VERSION: `/version`,
@@ -19,6 +20,7 @@ export const ROUTER_URL = {
   ADMIN_ROUTER: {
     LOGIN: `/admin/login`,
     FORGOT_PASSWORD: `/admin/forgot-password`,
+    PROFILE: `profile`,
     DASHBOARD: `dashboard`,
     USER: `users`,
     CATEGORY: `categories`,

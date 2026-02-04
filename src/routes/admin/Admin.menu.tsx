@@ -31,6 +31,13 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     isEnd: true,
   },
   {
+    label: "Profile",
+    path: ROUTER_URL.ADMIN_ROUTER.PROFILE,
+    icon: <UserCircle size={16} />,
+    component: React.lazy(() => import("@/pages/admin/auth/profile/Profile.page")),
+    isEnd: true,
+  },
+  {
     label: "Users",
     path: ROUTER_URL.ADMIN_ROUTER.USER,
     icon: <Users size={18} />,

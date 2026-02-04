@@ -68,7 +68,8 @@ export type HttpStatusCode = (typeof HttpStatusCode)[keyof typeof HttpStatusCode
 
 export const API_PATHS = {
   ADMIN: {
-    LOGIN: "/api/auth",
-    GET_PROFILE: "/api/auth",
+    AUTH: "api/auth",
+    LOGIN: "api/auth",
+    LOGOUT: "api/auth/logout",
   },
 };
