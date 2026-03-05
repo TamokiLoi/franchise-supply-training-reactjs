@@ -2,13 +2,7 @@ import { Loading } from "@/layouts";
 import { Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import NotFoundPage from "./pages/NotFoundPage.page";
-import {
-    AdminAuthRoutes,
-    AdminRoutes,
-    ClientAuthRoutes,
-    ClientPublicRoutes,
-    ClientRoutes
-} from "./routes";
+import { AdminAuthRoutes, AdminRoutes, ClientAuthRoutes, ClientPublicRoutes, ClientRoutes } from "./routes";
 
 const App = () => {
   return (
@@ -21,8 +15,8 @@ const App = () => {
 
           {/* Client */}
           {ClientAuthRoutes}
-          {ClientPublicRoutes}
           {ClientRoutes}
+          {ClientPublicRoutes}
 
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

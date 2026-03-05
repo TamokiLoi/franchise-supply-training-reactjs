@@ -1,7 +1,7 @@
+import { Loading } from "@/layouts";
 import { useAdminAuthStore } from "@/stores";
 import { Navigate, Outlet } from "react-router-dom";
 import { ROUTER_URL } from "../router.const";
-import { Loading } from "@/layouts";
 
 const AdminGuard = () => {
   const user = useAdminAuthStore((s) => s.user);

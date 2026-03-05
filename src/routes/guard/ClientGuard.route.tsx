@@ -6,13 +6,13 @@ import { ROUTER_URL } from "../router.const";
 const ClientGuard = () => {
   const customer = useCustomerAuthStore((s) => s.customer);
   const isInitialized = useCustomerAuthStore((s) => s.isInitialized);
-
+  
   if (!isInitialized) {
     return <Loading />;
   }
 
   if (!customer) {
-    return <Navigate to={ROUTER_URL.HOME} replace />;
+    return <Navigate to={ROUTER_URL.CLIENT_ROUTER.LOGIN} replace />;
   }
 
   return <Outlet />;
