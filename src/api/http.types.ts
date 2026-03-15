@@ -6,6 +6,7 @@ export interface HttpRequestConfig<TData = unknown, TParams extends Record<strin
   data?: TData;
   params?: TParams;
   headers?: Record<string, string>;
+  fullResponse?: boolean;
 }
 
 export interface HttpClient {
@@ -13,7 +14,9 @@ export interface HttpClient {
     config: HttpRequestConfig<never, P>,
   ): Promise<T | null>;
 
-  post<T, D = unknown>(config: HttpRequestConfig<D>): Promise<ApiSuccessResponse<T> | null>;
+  post<T, D = unknown>(config: HttpRequestConfig<D> & { fullResponse: true }): Promise<ApiSuccessResponse<T>>;
+
+  post<T, D = unknown>(config: HttpRequestConfig<D>): Promise<T | null>;
 
   put<T, D = unknown>(config: HttpRequestConfig<D>): Promise<T | null>;
 
