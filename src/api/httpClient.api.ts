@@ -25,8 +25,18 @@ export const httpClient: HttpClient = {
     return res.data.data;
   },
 
-  async post<T, D>(config: HttpRequestConfig<D>): Promise<T | null> {
+//   async post<T, D>(config: HttpRequestConfig<D>): Promise<T | null> {
+//     const res = await axiosClient.post<ApiSuccessResponse<T>>(config.url, config.data, { headers: config.headers });
+//     return res.data.data;
+//   },
+
+  async post<T, D>(config: HttpRequestConfig<D>): Promise<T | null | ApiSuccessResponse<T>> {
     const res = await axiosClient.post<ApiSuccessResponse<T>>(config.url, config.data, { headers: config.headers });
+
+    if (config.fullResponse) {
+      return res.data;
+    }
+
     return res.data.data;
   },
 
