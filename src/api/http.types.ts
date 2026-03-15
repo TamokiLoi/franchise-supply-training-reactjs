@@ -5,12 +5,15 @@ export interface HttpRequestConfig<TData = unknown, TParams extends Record<strin
   data?: TData;
   params?: TParams;
   headers?: Record<string, string>;
+  fullResponse?: boolean;
 }
 
 export interface HttpClient {
   get<T, P extends Record<string, unknown> = Record<string, unknown>>(
     config: HttpRequestConfig<never, P>,
   ): Promise<T | null>;
+
+  post<T, D = unknown>(config: HttpRequestConfig<D> & { fullResponse: true }): Promise<ApiSuccessResponse<T>>;
 
   post<T, D = unknown>(config: HttpRequestConfig<D>): Promise<T | null>;
 
