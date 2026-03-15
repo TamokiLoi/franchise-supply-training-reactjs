@@ -25,9 +25,9 @@ export const httpClient: HttpClient = {
     return res.data.data;
   },
 
-  async post<T, D>(config: HttpRequestConfig<D>): Promise<T | null> {
+  async post<T, D>(config: HttpRequestConfig<D>): Promise<ApiSuccessResponse<T> | null> {
     const res = await axiosClient.post<ApiSuccessResponse<T>>(config.url, config.data, { headers: config.headers });
-    return res.data.data;
+    return res.data;
   },
 
   async put<T, D>(config: HttpRequestConfig<D>): Promise<T | null> {

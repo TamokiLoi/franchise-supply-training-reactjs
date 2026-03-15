@@ -64,7 +64,8 @@ export const HttpStatusCode = {
   NetworkAuthenticationRequired: 511,
 };
 
-export type HttpStatusCode = (typeof HttpStatusCode)[keyof typeof HttpStatusCode];
+export type HttpStatusCode =
+  (typeof HttpStatusCode)[keyof typeof HttpStatusCode];
 
 export const API_PATHS = {
   ADMIN: {
@@ -73,6 +74,18 @@ export const API_PATHS = {
       SWITCH_CONTEXT: "api/auth/switch-context",
       REFRESH_TOKEN: "/api/auth/refresh-token",
       LOGOUT: "api/auth/logout",
+    },
+    CUSTOMER: {
+      CUSTOMERS_01: "api/customers/register",
+      CUSTOMERS_02: "api/customers",
+      CUSTOMERS_03: "api/customers/search",
+      CUSTOMERS_0456: (customerId: string) => `api/customers/${customerId}`,
+      CUSTOMERS_07: (customerId: string) =>
+        `api/customers/${customerId}/restore`,
+      CUSTOMERS_08: (customerId: string) =>
+        `api/customers/${customerId}/status`,
+      CUSTOMERS_09: (keyword: string) => `api/customers/find?
+      keyword=${keyword}`,
     },
   },
   CLIENT: {
@@ -83,14 +96,16 @@ export const API_PATHS = {
     },
     PUBLIC: {
       CLIENT_01: "/api/clients/franchises",
-      CLIENT_02: (franchiseId: string) => `/api/clients/franchises/${franchiseId}/categories`,
+      CLIENT_02: (franchiseId: string) =>
+        `/api/clients/franchises/${franchiseId}/categories`,
       CLIENT_03: (franchiseId: string, categoryId?: string) =>
         `/api/clients/menu?franchiseId=${franchiseId}&categoryId=${categoryId ?? ""}`,
       CLIENT_04: (franchiseId: string, categoryId?: string) =>
         `/api/clients/products?franchiseId=${franchiseId}&categoryId=${categoryId ?? ""}`,
       CLIENT_05: (franchiseId: string, productId: string) =>
         `/api/clients/franchises/${franchiseId}/products/${productId}`,
-      CLIENT_06: (franchiseId: string) => `/api/clients/franchises/${franchiseId}`,
+      CLIENT_06: (franchiseId: string) =>
+        `/api/clients/franchises/${franchiseId}`,
     },
   },
 };

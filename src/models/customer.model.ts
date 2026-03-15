@@ -4,4 +4,5 @@ export interface CustomerAuthProfile {
   phone: string;
   name: string;
   avatar_url: string;
+  address: string;
 }

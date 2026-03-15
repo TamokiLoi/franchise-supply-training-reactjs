@@ -21,6 +21,33 @@ export const setupApi = () => {
 export const requestInterceptor = () => {
   axiosClient.interceptors.request.use(
     (config) => {
+      const url = config.url || "";
+
+      let token = null;
+
+      // client API
+      if (url.startsWith("api/client")) {
+        const storage = localStorage.getItem("customer-auth-storage");
+        
+        if (storage) {
+          const parsed = JSON.parse(storage);
+          token = parsed?.state?.accessToken;
+        }
+      }
+
+      // admin API
+      else {
+        const storage = localStorage.getItem("admin-auth-storage");
+
+        if (storage) {
+          const parsed = JSON.parse(storage);
+          token = parsed?.state?.accessToken;
+        }
+      }
+
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
       return config;
     },
     (error) => Promise.reject(error),

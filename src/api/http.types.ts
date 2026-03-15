@@ -1,3 +1,4 @@
+import { type PageInfoResponse } from "./../pages/admin/customer/models/api.models";
 import type { ApiFieldError } from "@/models";
 
 export interface HttpRequestConfig<TData = unknown, TParams extends Record<string, unknown> = Record<string, unknown>> {
@@ -12,7 +13,7 @@ export interface HttpClient {
     config: HttpRequestConfig<never, P>,
   ): Promise<T | null>;
 
-  post<T, D = unknown>(config: HttpRequestConfig<D>): Promise<T | null>;
+  post<T, D = unknown>(config: HttpRequestConfig<D>): Promise<ApiSuccessResponse<T> | null>;
 
   put<T, D = unknown>(config: HttpRequestConfig<D>): Promise<T | null>;
 
@@ -26,6 +27,7 @@ export interface HttpClient {
 export interface ApiSuccessResponse<T> {
   success: true;
   data: T | null;
+  pageInfo?: PageInfoResponse;
 }
 
 export interface ApiErrorResponse {
