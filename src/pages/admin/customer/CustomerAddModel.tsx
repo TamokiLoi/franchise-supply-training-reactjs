@@ -1,15 +1,16 @@
-import { useState, useRef, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { CustomerAuthProfile } from "@/models";
 import { Button } from "@/components";
-import { House, Mail, Phone, UserRoundPen, Upload } from "lucide-react";
+import { House, Mail, Phone, UserRoundPen } from "lucide-react";
 import { customerCreateSchema } from "./schema/CustomerCreate.schema";
 import defAvatar from "@/assets/defAvatar.jpg";
 import { showSuccess } from "@/utils";
+import { createCustomerUseCase } from "./usecases/CreateCustomer.usecase";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  onSave: (customer: Partial<CustomerAuthProfile> & { avatar_file?: File | null }) => Promise<void>;
+  onSave: (customer: CustomerAuthProfile) => Promise<void>;
 };
 
 type CustomerField = {
@@ -48,14 +49,10 @@ const fields: CustomerField[] = [
   },
 ];
 
-export default function CustomerAddModel({ open, onClose, onSave }: Props) {
+export default function CustomerAddModel({ open, onClose }: Props) {
   const [form, setForm] = useState<Partial<CustomerAuthProfile>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!open) return null;
 
@@ -68,16 +65,6 @@ export default function CustomerAddModel({ open, onClose, onSave }: Props) {
     if (errors[key]) {
       setErrors((prev) => ({ ...prev, [key]: "" }));
     }
-  };
-
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
-
-    e.target.value = "";
   };
 
   const validateForm = () => {
@@ -105,18 +92,21 @@ export default function CustomerAddModel({ open, onClose, onSave }: Props) {
     try {
       setLoading(true);
 
-      await onSave({
-        ...form,
-        avatar_file: avatarFile,
-      });
+      // 👉 GỌI API Ở ĐÂY
+      await createCustomerUseCase(form);
 
+      showSuccess("Add successfully");
       onClose();
     } catch (err: any) {
       if (err?.fieldErrors) {
         setErrors(err.fieldErrors);
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          general: err?.message || "Something went wrong",
+        }));
       }
     } finally {
-      showSuccess("add successfully");
       setLoading(false);
     }
   };
@@ -130,14 +120,7 @@ export default function CustomerAddModel({ open, onClose, onSave }: Props) {
         <div className="border-t border-gray-200 my-6"></div>
         {/* Avatar */}
         <div className="flex items-center gap-5 mb-8">
-          <img src={avatarPreview || defAvatar} className="w-24 h-24 rounded-full object-cover border" />
-
-          <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-            <Upload className="w-4 h-4 mr-2" />
-            Upload Avatar
-          </Button>
-
-          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+          <img src={defAvatar} className="w-24 h-24 rounded-full object-cover border" />
         </div>
 
         <div className="grid grid-cols-2 gap-5">

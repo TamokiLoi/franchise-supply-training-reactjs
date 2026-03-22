@@ -5,4 +5,5 @@ export interface CustomerAuthProfile {
   name: string;
   avatar_url: string;
   address: string;
+  is_deleted: boolean;
 }

@@ -10,5 +10,6 @@ export const searchCustomers = async (
   return httpClient.post<CustomerAuthProfile[]>({
     url: API_PATHS.ADMIN.CUSTOMER.CUSTOMERS_03,
     data: body,
+    fullResponse: true,
   });
 };

@@ -1,52 +1,39 @@
 import { useEffect, useState, useCallback } from "react";
-import { searchCustomers } from "./services/Customer03.service";
-import { createCustomer } from "./services/Customer02.service";
 
 import type { CustomerAuthProfile } from "@/models";
-import type { SearchCustomerBody } from "./models/api.models";
 
 import { Button } from "@/components";
 import Search from "@/components/ui/search";
 import Pagination from "@/components/ui/pagination";
 
 import defAvatar from "@/assets/defAvatar.jpg";
-import { Pencil, UserRoundX } from "lucide-react";
+import { RotateCcw, UserPlus, UserRoundX } from "lucide-react";
 
 import CustomerAddModel from "./CustomerAddModel";
-import CustomerEditModel from "./CustomerEditModel";
-import { updateCustomer } from "./services/Customer04.service";
+import { createCustomerUseCase } from "./usecases/CreateCustomer.usecase";
+import { deleteCustomerUseCase } from "./usecases/DeleteCustomer.usecase";
+import { searchCustomerUseCase } from "./usecases/SearchCustomer.usecase";
+import { restoreCustomerUseCase } from "./usecases/restoreCustomer.usecase";
+import { showSuccess } from "@/utils";
 
 export default function CustomerPage() {
   const pageSize = 10;
 
   const [customers, setCustomers] = useState<CustomerAuthProfile[]>([]);
   const [loading, setLoading] = useState(false);
-  // search
+
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
 
-  // edit
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerAuthProfile | null>(null);
-  // add
   const [showAddModel, setShowAddModel] = useState(false);
 
+  // fetch customers
   const fetchCustomers = useCallback(async () => {
     try {
       setLoading(true);
 
-      const payload: SearchCustomerBody = {
-        searchCondition: {
-          keyword,
-        },
-        pageInfo: {
-          pageNum: page,
-          pageSize,
-        },
-      };
-
-      const res = await searchCustomers(payload);
+      const res = await searchCustomerUseCase(keyword, page, pageSize);
 
       if (!res || !res.success) return;
 
@@ -59,6 +46,7 @@ export default function CustomerPage() {
     }
   }, [keyword, page]);
 
+  // debounce search
   useEffect(() => {
     const timeout = setTimeout(() => {
       setPage(1);
@@ -68,9 +56,61 @@ export default function CustomerPage() {
     return () => clearTimeout(timeout);
   }, [keyword]);
 
+  // page change
   useEffect(() => {
     fetchCustomers();
   }, [page]);
+
+  // handlers
+  const handleCloseAddModal = () => {
+    setShowAddModel(false);
+  };
+
+  const handleSaveCustomer = async (customer: CustomerAuthProfile) => {
+    try {
+      await createCustomerUseCase(customer);
+      fetchCustomers();
+      setShowAddModel(false);
+    } catch (err: any) {
+      const fieldErrors: Record<string, string> = {};
+
+      if (err?.errors?.length) {
+        for (const e of err.errors) {
+          if (e.field) {
+            fieldErrors[e.field] = e.message;
+          }
+        }
+      }
+
+      if (Object.keys(fieldErrors).length === 0 && err?.message) {
+        fieldErrors["general"] = err.message;
+      }
+
+      throw { fieldErrors };
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this customer?");
+    if (!confirmDelete) return;
+
+    try {
+      await deleteCustomerUseCase(id);
+      showSuccess("Deleted ");
+      fetchCustomers();
+    } catch (error) {
+      console.error("Delete customer failed:", error);
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    try {
+      await restoreCustomerUseCase(id);
+      fetchCustomers();
+    } catch (error) {
+      console.error("Restore customer failed:", error);
+    }
+  };
 
   const thStyle = "px-6 py-3 text-left text-sm font-semibold text-gray-600";
   const tdStyle = "px-6 py-4";
@@ -82,7 +122,9 @@ export default function CustomerPage() {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <Search keyword={keyword} setKeyword={setKeyword} />
 
-        <Button onClick={() => setShowAddModel(true)}>Add</Button>
+        <Button onClick={() => setShowAddModel(true)}>
+          <UserPlus /> Add
+        </Button>
       </div>
 
       <div className="overflow-hidden bg-white shadow rounded-lg border">
@@ -121,23 +163,25 @@ export default function CustomerPage() {
                   <td className={tdStyle}>{c.address || "None"}</td>
 
                   <td className="px-6 py-4 text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mr-2"
-                      onClick={() => {
-                        setSelectedCustomer(c);
-                        setShowEditModal(true);
-                      }}
-                    >
-                      <Pencil size={16} />
-                      Edit
-                    </Button>
-
-                    <Button variant="destructive" size="sm">
-                      <UserRoundX size={16} />
-                      Delete
-                    </Button>
+                    {!c.is_deleted ? (
+                      <Button
+                        variant="destructive"
+                        size={"icon-lg"}
+                        className="flex items-center gap-1 hover:bg-red-400"
+                        onClick={() => handleDelete(c.id)}
+                      >
+                        <UserRoundX size={16} />
+                      </Button>
+                    ) : (
+                      <Button
+                        variant={"outline"}
+                        size={"icon-lg"}
+                        className="flex items-center gap-1 text-green-600 border-green-200 hover:bg-green-50"
+                        onClick={() => handleRestore(c.id)}
+                      >
+                        <RotateCcw size={16} />
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -148,66 +192,7 @@ export default function CustomerPage() {
 
       <Pagination page={page} totalPages={totalPage} setPage={setPage} />
 
-      {showEditModal && (
-        <CustomerEditModel
-          open={showEditModal}
-          customer={selectedCustomer}
-          onClose={() => setShowEditModal(false)}
-          onSave={async (customer) => {
-            try {
-              if (!customer?.id) return;
-
-              await updateCustomer(customer);
-
-              setShowEditModal(false);
-              fetchCustomers();
-            } catch (error) {
-              console.error("Update customer failed:", error);
-            }
-          }}
-        />
-      )}
-
-      <CustomerAddModel
-        open={showAddModel}
-        onClose={() => {
-          setShowAddModel(false);
-        }}
-        onSave={async (customer) => {
-          const formData = new FormData();
-
-          formData.append("name", customer.name ?? "");
-          formData.append("email", customer.email ?? "");
-          formData.append("phone", customer.phone ?? "");
-          formData.append("address", customer.address ?? "");
-          formData.append("password", "12345678");
-
-          if (customer.avatar_file) {
-            formData.append("avatar", customer.avatar_file);
-          }
-
-          try {
-            await createCustomer(formData);
-            fetchCustomers();
-          } catch (err: any) {
-            const fieldErrors: Record<string, string> = {};
-
-            if (err?.errors?.length) {
-              for (const e of err.errors) {
-                if (e.field) {
-                  fieldErrors[e.field] = e.message;
-                }
-              }
-            }
-
-            if (Object.keys(fieldErrors).length === 0 && err?.message) {
-              fieldErrors["general"] = err.message;
-            }
-
-            throw { fieldErrors };
-          }
-        }}
-      />
+      <CustomerAddModel open={showAddModel} onClose={handleCloseAddModal} onSave={handleSaveCustomer} />
     </div>
   );
 }
