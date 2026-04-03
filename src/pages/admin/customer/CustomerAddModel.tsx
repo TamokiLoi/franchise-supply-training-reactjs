@@ -1,11 +1,10 @@
-import { useState, type ReactNode } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { CustomerAuthProfile } from "@/models";
-import { Button } from "@/components";
-import { House, Mail, Phone, UserRoundPen } from "lucide-react";
-import { customerCreateSchema } from "./schema/CustomerCreate.schema";
+import { Button, InputFormControl } from "@/components";
 import defAvatar from "@/assets/defAvatar.jpg";
-import { showSuccess } from "@/utils";
-import { createCustomerUseCase } from "./usecases/CreateCustomer.usecase";
+import { showFormatErrors, showSuccess } from "@/utils";
+import { customerCreateSchema, type CustomerCreateFormValues } from "./schema/CustomerCreate.schema";
 
 type Props = {
   open: boolean;
@@ -13,101 +12,38 @@ type Props = {
   onSave: (customer: CustomerAuthProfile) => Promise<void>;
 };
 
-type CustomerField = {
-  key: keyof CustomerAuthProfile;
-  label: string;
-  icon: ReactNode;
-  placeholder: string;
-};
-
-const iconStyle = "w-4 h-4";
-
-const fields: CustomerField[] = [
-  {
-    key: "name",
-    label: "Name",
-    placeholder: "Enter customer name",
-    icon: <UserRoundPen className={iconStyle} />,
-  },
-  {
-    key: "email",
-    label: "Email",
-    placeholder: "Enter email",
-    icon: <Mail className={iconStyle} />,
-  },
-  {
-    key: "phone",
-    label: "Phone",
-    placeholder: "Enter phone number",
-    icon: <Phone className={iconStyle} />,
-  },
-  {
-    key: "address",
-    label: "Address",
-    placeholder: "Enter address",
-    icon: <House className={iconStyle} />,
-  },
-];
-
-export default function CustomerAddModel({ open, onClose }: Props) {
-  const [form, setForm] = useState<Partial<CustomerAuthProfile>>({});
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
+export default function CustomerAddModel({ open, onClose, onSave }: Props) {
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<CustomerCreateFormValues>({
+    resolver: zodResolver(customerCreateSchema),
+  });
 
   if (!open) return null;
 
-  const handleChange = (key: keyof CustomerAuthProfile, value: string) => {
-    setForm((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-
-    if (errors[key]) {
-      setErrors((prev) => ({ ...prev, [key]: "" }));
-    }
-  };
-
-  const validateForm = () => {
-    const result = customerCreateSchema.safeParse(form);
-
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-
-      result.error.issues.forEach((err) => {
-        const field = err.path[0] as string;
-        fieldErrors[field] = err.message;
-      });
-
-      setErrors(fieldErrors);
-      return false;
-    }
-
-    setErrors({});
-    return true;
-  };
-
-  const handleSave = async () => {
-    if (!validateForm()) return;
-
+  const onSubmit = async (data: CustomerCreateFormValues) => {
     try {
-      setLoading(true);
-
-      // 👉 GỌI API Ở ĐÂY
-      await createCustomerUseCase(form);
-
+      await onSave(data);
       showSuccess("Add successfully");
+      reset();
       onClose();
     } catch (err: any) {
-      if (err?.fieldErrors) {
-        setErrors(err.fieldErrors);
-      } else {
-        setErrors((prev) => ({
-          ...prev,
-          general: err?.message || "Something went wrong",
-        }));
+      const message = err?.response?.data?.message;
+
+      if (message?.toLowerCase().includes("email")) {
+        setError("email", {
+          type: "server",
+          message: "Email already exists",
+        });
+        return;
       }
-    } finally {
-      setLoading(false);
+
+      // fallback
+      showFormatErrors(err, setError, "Create failed");
     }
   };
 
@@ -123,42 +59,47 @@ export default function CustomerAddModel({ open, onClose }: Props) {
           <img src={defAvatar} className="w-24 h-24 rounded-full object-cover border" />
         </div>
 
-        <div className="grid grid-cols-2 gap-5">
-          {fields.map((field) => (
-            <div key={field.key} className="flex flex-col">
-              <label className="text-sm text-gray-600 mb-1 flex items-center gap-2">
-                {field.icon}
-                {field.label}
-              </label>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="grid grid-cols-2 gap-5">
+            <InputFormControl
+              label="Name"
+              register={register("name")}
+              error={errors.name}
+              placeholder="Enter customer name"
+            />
 
-              <input
-                value={(form[field.key] as string) ?? ""}
-                placeholder={field.placeholder}
-                onChange={(e) => handleChange(field.key, e.target.value)}
-                className={`border rounded-lg px-3 py-2 outline-none focus:ring-2
-                ${errors[field.key] ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-blue-400"}`}
-              />
+            <InputFormControl
+              label="Email"
+              register={register("email")}
+              error={errors.email}
+              type="email"
+              placeholder="Enter email"
+            />
 
-              {errors[field.key] && <p className="text-red-500 text-xs mt-1">{errors[field.key]}</p>}
-            </div>
-          ))}
-        </div>
-        {/* show error response from API */}
-        {errors["general"] && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-            {errors["general"]}
+            <InputFormControl
+              label="Phone"
+              register={register("phone")}
+              error={errors.phone}
+              placeholder="Enter phone number"
+            />
+
+            <InputFormControl
+              label="Address"
+              register={register("address")}
+              error={errors.address}
+              placeholder="Enter address"
+            />
           </div>
-        )}
-        <div className="border-t border-gray-200 my-6 "></div>
-        <div className="flex justify-end gap-3 mt-8">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
 
-          <Button onClick={handleSave} disabled={loading}>
-            {loading ? "Saving..." : "Add Customer"}
-          </Button>
-        </div>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Add Customer"}
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );

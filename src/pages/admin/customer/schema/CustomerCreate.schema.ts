@@ -7,5 +7,7 @@ export const customerCreateSchema = z.object({
 
   phone: z.string().regex(/^\d{10}$/, "Phone must contain exactly 10 digits"),
 
-  address: z.string().min(1, "Address is required"),
+  address: z.string().trim().optional().or(z.literal("")),
 });
+
+export type CustomerCreateFormValues = z.infer<typeof customerCreateSchema>;

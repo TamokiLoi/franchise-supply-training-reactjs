@@ -1,12 +1,12 @@
 export const searchConditionFields = {
   keyword: "keyword",
-  is_actived: "is_actived",
+  is_active: "is_active",
   is_deleted: "is_deleted",
 } as const;
 
 export interface SearchCondition {
   keyword?: string;
-  is_actived?: string | boolean;
+  is_active?: string | boolean;
   is_deleted?: string | boolean;
 }
 
